@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vocabulario Magnético v3.2</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f0f0f0; color: #333; }
+    input, button { padding: 0.5rem; font-size: 1rem; margin-right: 0.5rem; }
+    .results a { display: block; margin-top: 0.5rem; color: #0066cc; text-decoration: none; }
+    .results a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Vocabulario Magnético v3.2</h1>
+  <p>Escribe una palabra en inglés para buscar sinónimos, antónimos, ejemplos reales y más:</p>
+  <input type="text" id="wordInput" placeholder="Escribe una palabra..." />
+  <button onclick="buscar()">Buscar</button>
+  <div class="results" id="resultLinks"></div>
+
+  <script>
+    function buscar() {
+      const word = document.getElementById("wordInput").value.trim();
+      if (!word) return;
+
+      const links = {
+        "🔤 Cambridge Dictionary": `https://dictionary.cambridge.org/dictionary/english/${word}`,
+        "🧠 Skell (ejemplos reales)": `https://skell.sketchengine.eu/#result?lang=en&query=${word}`,
+        "📚 Reverso Context": `https://context.reverso.net/translation/english-spanish/${word}`,
+        "📖 Ludwig.guru": `https://ludwig.guru/s/${word}`,
+        "📘 Google Libros": `https://www.google.com/search?q=${word}+site:books.google.com`
+      };
+
+      const resultDiv = document.getElementById("resultLinks");
+      resultDiv.innerHTML = "<h3>Recursos encontrados:</h3>";
+      for (const [label, url] of Object.entries(links)) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.textContent = label;
+        resultDiv.appendChild(a);
+      }
+    }
+  </script>
+</body>
+</html>
