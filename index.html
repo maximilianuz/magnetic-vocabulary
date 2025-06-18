@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vocabulario Magnético V3</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f4f4f4; color: #333; transition: all 0.3s; }
+    .dark-mode { background: #121212; color: #ddd; }
+    input, textarea, button, select {
+      width: 100%; padding: 0.5rem; margin: 0.5rem 0; font-size: 1rem;
+    }
+    .results { background: #e6e6e6; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+    .dark-mode .results { background: #2b2b2b; }
+    .section { margin-bottom: 2rem; }
+    audio { margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <button onclick="toggleDarkMode()">🌙/☀️</button>
+  <h1>Vocabulario Magnético V3</h1>
+
+  <div class="section">
+    <h2>1. Explora una palabra</h2>
+    <input id="wordInput" placeholder="Escribe una palabra en inglés..." />
+    <button onclick="analyzeWord()">Analizar</button>
+    <div id="output" class="results"></div>
+  </div>
+
+  <div class="section">
+    <h2>2. Crea una historia personal</h2>
+    <textarea id="story" rows="4" placeholder="Escribe una historia usando la palabra..."></textarea>
+  </div>
+
+  <div class="section">
+    <h2>3. Reformulación (paraphrase)</h2>
+    <textarea id="paraphrase" rows="2" placeholder="Reescribí la historia sin usar la palabra principal..."></textarea>
+  </div>
+
+  <div class="section">
+    <h2>4. Grabación de voz</h2>
+    <button onclick="startRecording()">🎙️ Grabar</button>
+    <button onclick="stopRecording()">⏹️ Detener</button>
+    <div id="recordingsList"></div>
+  </div>
+
+  <div class="section">
+    <h2>5. Flashcard aleatoria</h2>
+    <button onclick="randomChallenge()">🎲 Nuevo reto</button>
+    <div id="challenge" class="results"></div>
+  </div>
+
+  <script>
+    let mediaRecorder, audioChunks = [];
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function analyzeWord() {
+      const word = document.getElementById("wordInput").value.trim().toLowerCase();
+      if (!word) return;
+      const output = document.getElementById("output");
+
+      const examples = {
+        run: {
+          collocations: ["run a business", "run fast", "run late"],
+          phrasal: ["run into", "run out of", "run over"],
+          synonyms: ["sprint", "jog", "dash"],
+          antonyms: ["walk", "stop", "rest"],
+          context: "We often use 'run' metaphorically, e.g. 'run a company' means to manage it.",
+          avoid: "Don't confuse 'run' with 'walk' in idioms like 'run a fever'."
+        },
+        make: {
+          collocations: ["make a decision", "make money", "make a mistake"],
+          phrasal: ["make up", "make out", "make over"],
+          synonyms: ["create", "produce", "build"],
+          antonyms: ["destroy", "ruin", "break"],
+          context: "'Make' is often used for production or decisions, especially in expressions.",
+          avoid: "Avoid using 'do' when 'make' expresses creation (e.g. ❌ do a cake, ✅ make a cake)."
+        }
+      };
+
+      const data = examples[word] || {
+        collocations: ["No data"],
+        phrasal: ["No data"],
+        synonyms: ["Check a dictionary"],
+        antonyms: ["Check a thesaurus"],
+        context: "Try checking this word on YouGlish or Skell for real examples.",
+        avoid: "Search common mistakes with this word."
+      };
+
+      output.innerHTML = `
+        <strong>Palabra:</strong> ${word}<br>
+        <strong>Colocaciones:</strong> ${data.collocations.join(", ")}<br>
+        <strong>Phrasal Verbs:</strong> ${data.phrasal.join(", ")}<br>
+        <strong>Sinónimos:</strong> ${data.synonyms.join(", ")}<br>
+        <strong>Antónimos:</strong> ${data.antonyms.join(", ")}<br>
+        <strong>Contexto:</strong> ${data.context}<br>
+        <strong>⚠️ Error común:</strong> ${data.avoid}<br>
+        <strong>🔗 Ejemplos reales:</strong> <a href="https://youglish.com/pronounce/${word}/english/us" target="_blank">YouGlish</a>
+      `;
+    }
+
+    function startRecording() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.start();
+          audioChunks = [];
+
+          mediaRecorder.addEventListener("dataavailable", event => {
+            audioChunks.push(event.data);
+          });
+
+          mediaRecorder.addEventListener("stop", () => {
+            const audioBlob = new Blob(audioChunks);
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = document.createElement("audio");
+            audio.controls = true;
+            audio.src = audioUrl;
+            document.getElementById("recordingsList").appendChild(audio);
+          });
+        });
+    }
+
+    function stopRecording() {
+      if (mediaRecorder) mediaRecorder.stop();
+    }
+
+    function randomChallenge() {
+      const challenges = [
+        "Decí 3 sinónimos de una palabra común.",
+        "Contá una historia en pasado usando un phrasal verb.",
+        "Decí una frase formal y su versión informal.",
+        "Decí una oración con una expresión idiomática (e.g., break the ice).",
+        "Transformá una oración afirmativa en negativa."
+      ];
+      const pick = challenges[Math.floor(Math.random() * challenges.length)];
+      document.getElementById("challenge").innerText = pick;
+    }
+  </script>
+</body>
+</html>
