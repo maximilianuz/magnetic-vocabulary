@@ -1,355 +1,405 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vocabulary Coach – Open Source Lab</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 2rem;
-      background: #f0f0f0;
-      color: #333;
-      transition: all 0.3s;
-    }
-    .dark-mode {
-      background: #121212;
-      color: #ddd;
-    }
-    input, textarea, button {
-      font-size: 1rem;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .section {
-      margin-bottom: 2rem;
-    }
-    .results, #challenge, #tip, #progressSummary, #wordnikOutput, #coachFeedback {
-      background: #e6e6e6;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    .dark-mode .results, .dark-mode #challenge, .dark-mode #tip, .dark-mode #progressSummary, .dark-mode #wordnikOutput, .dark-mode #coachFeedback {
-      background: #2b2b2b;
-    }
-    audio {
-      margin-top: 0.5rem;
-    }
-    .audio-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vocabulary Coach Pro</title>
+<style>
+body {
+  font-family: sans-serif;
+  margin: 2rem;
+  background: #f0f0f0;
+  color: #333;
+  transition: all 0.3s;
+}
+.dark-mode {
+  background: #121212;
+  color: #ddd;
+}
+input, textarea, button {
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.section {
+  margin-bottom: 2rem;
+}
+.results, #challenge, #tip, #progressSummary, #wordnikOutput, #coachFeedback, #examplesOutput, #translationOutput, #quizOutput, #historyOutput, #grammarFeedback, #conversationOutput, #listeningFeedback {
+  background: #e6e6e6;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+.dark-mode .results, .dark-mode #challenge, .dark-mode #tip, .dark-mode #progressSummary, .dark-mode #wordnikOutput, .dark-mode #coachFeedback, .dark-mode #examplesOutput, .dark-mode #translationOutput, .dark-mode #quizOutput, .dark-mode #historyOutput, .dark-mode #grammarFeedback, .dark-mode #conversationOutput, .dark-mode #listeningFeedback {
+  background: #2b2b2b;
+}
+audio {
+  margin-top: 0.5rem;
+}
+.audio-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+ul.suggestions {
+  background: #fff;
+  color: #222;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #ccc;
+  max-height: 120px;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+}
+ul.suggestions li {
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+ul.suggestions li:hover {
+  background: #e6e6e6;
+}
+.progress-bar {
+  width: 100%;
+  background: #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+.progress-bar-inner {
+  height: 16px;
+  background: #5896f7;
+  width: 0%;
+  color: #fff;
+  text-align: center;
+  line-height: 16px;
+  transition: width 0.3s;
+}
+.badge {
+  display: inline-block;
+  background: #43c079;
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  margin-right: 0.3rem;
+  margin-bottom: 0.3rem;
+}
+</style>
 </head>
 <body>
-  <button aria-label="Toggle dark mode" onclick="toggleDarkMode()">🌙/☀️</button>
-  <h1>Vocabulary Coach – Open Source Lab</h1>
-
+  <button onclick="toggleDarkMode()">🌙/☀️</button>
+  <h1>Vocabulary Coach Pro</h1>
   <div class="section" role="region" aria-labelledby="explore-word">
     <h2 id="explore-word">1. Explore a Word</h2>
-    <input id="wordInput" placeholder="Type an English word..." aria-label="Word input" autocomplete="off" />
-    <button id="analyzeBtn" onclick="analyzeWord()" aria-label="Analyze word">Analyze</button>
-    <button id="saveBtn" onclick="saveLearnedWord()" aria-label="Mark word as learned">I learned this today 📌</button>
-    <div id="output" class="results" aria-live="polite"></div>
+    <div style="position:relative">
+      <input id="wordInput" placeholder="Type a word..." autocomplete="off">
+      <div id="suggestionsOutput"></div>
+    </div>
+    <button onclick="analyzeWord()">Analyze</button>
+    <button onclick="playPronunciation(document.getElementById('wordInput').value)">🔊 Listen</button>
+    <button id="saveBtn" onclick="saveLearnedWord()">Save</button>
+    <button onclick="showSynonymQuiz(document.getElementById('wordInput').value)">Quiz</button>
+    <button onclick="exportProgress()">Export</button>
+    <div id="output"></div>
     <div id="wordnikOutput"></div>
+    <div id="examplesOutput"></div>
+    <div id="translationOutput"></div>
+    <div id="quizOutput"></div>
     <div id="coachFeedback"></div>
-  </div>
-
-  <div class="section" role="region" aria-labelledby="context-practice">
-    <h2 id="context-practice">2. Context Practice</h2>
-    <textarea id="story" rows="3" placeholder="Write a short story using the word..." aria-label="Write a story"></textarea>
-    <textarea id="paraphrase" rows="2" placeholder="Now rewrite it without using the word..." aria-label="Paraphrase the story"></textarea>
-    <button onclick="rewriteStory()" aria-label="Rewrite story">🔁 Ask Coach Alex to rewrite</button>
-    <div id="rewriteOutput"></div>
-  </div>
-
-  <div class="section" role="region" aria-labelledby="listening-practice">
-    <h2 id="listening-practice">3. Listening Practice</h2>
-    <button onclick="startRecording()" aria-label="Start recording">🎙️ Record</button>
-    <button onclick="stopRecording()" aria-label="Stop recording">⏹️ Stop</button>
-    <div id="recordingsList"></div>
-  </div>
-
-  <div class="section" role="region" aria-labelledby="daily-challenge">
-    <h2 id="daily-challenge">4. Daily Challenge</h2>
-    <div id="challenge"></div>
-  </div>
-
-  <div class="section" role="region" aria-labelledby="tip-of-day">
-    <h2 id="tip-of-day">5. Tip of the Day</h2>
-    <div id="tip"></div>
-  </div>
-
-  <div class="section" role="region" aria-labelledby="progress-summary">
-    <h2 id="progress-summary">📊 Progress Summary</h2>
+    <div id="historyOutput"></div>
     <div id="progressSummary"></div>
   </div>
+  <div class="section" role="region" aria-labelledby="context-practice">
+    <h2 id="context-practice">2. Context Practice</h2>
+    <textarea id="story" placeholder="Write a story..."></textarea>
+    <button onclick="grammarCheck(document.getElementById('story').value)">Check Grammar</button>
+    <div id="grammarFeedback"></div>
+    <textarea id="paraphrase" placeholder="Rewrite without the word..."></textarea>
+    <button onclick="rewriteStory()">Rewrite</button>
+    <div id="rewriteOutput"></div>
+  </div>
+  <div class="section" role="region" aria-labelledby="conversation-practice">
+    <h2 id="conversation-practice">3. Conversation Practice</h2>
+    <div id="conversationOutput"></div>
+    <input id="conversationInput" placeholder="Type your answer...">
+    <button onclick="simulateConversation()">Send</button>
+  </div>
+  <div class="section" role="region" aria-labelledby="listening-practice">
+    <h2 id="listening-practice">4. Listening Practice</h2>
+    <button onclick="playListeningClip()">Play Clip</button>
+    <input id="listeningInput" placeholder="What did you hear?">
+    <button onclick="checkListening()">Check</button>
+    <div id="listeningFeedback"></div>
+  </div>
+  <div class="section" role="region" aria-labelledby="daily-challenge">
+    <h2 id="daily-challenge">5. Daily Challenge</h2>
+    <div id="challenge"></div>
+  </div>
+  <div class="section" role="region" aria-labelledby="tip-of-day">
+    <h2 id="tip-of-day">6. Tip of the Day</h2>
+    <div id="tip"></div>
+  </div>
+<script>
+const API_NINJAS_KEY = 'fytLoCN2a6ASpU2ez0LLOA==lSBX9fmbuElzjKoL'; // 
 
-  <script>
-    // ====== CONFIGURACIÓN DE CLAVES API ======
-    // ¡IMPORTANTE! Sustituye por tus claves personales
-    const WORDNIK_API_KEY = 'YOUR_WORDNIK_API_KEY';
-    const API_NINJAS_KEY = 'fytLoCN2a6ASpU2ez0LLOA==lSBX9fmbuElzjKoL';
+// Dark mode automático/manual
+function toggleDarkMode() {
+  document.body.classList.toggle("dark-mode");
+}
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.body.classList.add("dark-mode");
+}
 
-    // ====== DATOS Y CONSTANTES ======
-    let mediaRecorder, audioChunks = [];
+// Autocomplete inteligente
+document.getElementById("wordInput").addEventListener("input", function(e) {
+  const value = e.target.value;
+  if (value.length < 2) {
+    document.getElementById("suggestionsOutput").innerHTML = '';
+    return;
+  }
+  fetch(`https://api.datamuse.com/sug?s=${value}`)
+    .then(res => res.json())
+    .then(suggestions => {
+      let html = suggestions.map(s => `<li onclick="selectSuggestion('${s.word}')">${s.word}</li>`).join('');
+      document.getElementById("suggestionsOutput").innerHTML = `<ul class="suggestions">${html}</ul>`;
+    });
+});
+function selectSuggestion(word) {
+  document.getElementById("wordInput").value = word;
+  document.getElementById("suggestionsOutput").innerHTML = '';
+  analyzeWord();
+}
 
-    const tips = [
-      "Avoid 'do a mistake'. Say 'make a mistake'.",
-      "Use 'run' for managing things: 'run a business'.",
-      "'Get' has many meanings: get married, get tired, get ready.",
-      "'Look after' means take care of someone or something.",
-      "Use 'used to' for past habits: I used to play piano."
-    ];
+// Pronunciación automática
+function playPronunciation(word) {
+  if (!word) return;
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US';
+  speechSynthesis.speak(utter);
+}
 
-    const challenges = [
-      "Say 3 synonyms for a common verb.",
-      "Tell a story in past using a phrasal verb.",
-      "Say a formal sentence and its informal version.",
-      "Use an idiom in a sentence (e.g., break the ice).",
-      "Turn a positive sentence into a negative one."
-    ];
-
-    // ====== MODO OSCURO ======
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
-    }
-
-    // ====== EXPLORAR PALABRA ======
-    function analyzeWord() {
-      const word = document.getElementById("wordInput").value.trim().toLowerCase();
-      if (!word) return;
-
-      // Actualiza enlaces útiles
-      const output = document.getElementById("output");
-      const links = {
-        "🔤 Cambridge Dictionary": `https://dictionary.cambridge.org/dictionary/english/${word}`,
-        "🧠 Skell Examples": `https://skell.sketchengine.eu/#result?lang=en&query=${word}`,
-        "📚 Reverso Context": `https://context.reverso.net/translation/english-spanish/${word}`,
-        "📖 Ludwig.guru": `https://ludwig.guru/s/${word}`,
-        "🎧 YouGlish": `https://youglish.com/pronounce/${word}/english/us`
-      };
-
-      output.innerHTML = `<strong>Word:</strong> ${word}<br><br>`;
-      for (const [label, url] of Object.entries(links)) {
-        output.innerHTML += `<a href="${url}" target="_blank" rel="noopener">${label}</a><br>`;
-      }
-
-      // Limpia la retroalimentación previa
-      document.getElementById("wordnikOutput").innerHTML = "Loading definitions...";
-      document.getElementById("coachFeedback").innerHTML = "";
-
-      // Llama a Wordnik (manejo de errores)
-      fetch(`https://api.wordnik.com/v4/word.json/${word}/definitions?limit=2&api_key=${WORDNIK_API_KEY}`)
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => {
-          const defDiv = document.getElementById("wordnikOutput");
-          if (data && data.length > 0) {
-            defDiv.innerHTML = `<strong>Definitions from Wordnik:</strong><ul>` +
-              data.map(d => `<li>${d.text}</li>`).join('') + `</ul>`;
-          } else {
-            defDiv.innerHTML = "No definitions found.";
-          }
-        })
-        .catch(() => {
-          document.getElementById("wordnikOutput").innerHTML = "Couldn't fetch definitions. Please check your API key.";
-        });
-
-      // Llama a API-Ninjas para sinónimos/antónimos (manejo de errores)
-      fetch(`https://api.api-ninjas.com/v1/thesaurus?word=${word}`, {
-        headers: { 'X-Api-Key': API_NINJAS_KEY }
-      })
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => {
-          const coach = document.getElementById("coachFeedback");
-          if ((data.synonyms && data.synonyms.length) || (data.antonyms && data.antonyms.length)) {
-            coach.innerHTML = `👋 Coach Alex says: <br>` +
-              (data.synonyms ? `<strong>Synonyms:</strong> ${data.synonyms.join(", ")}<br>` : '') +
-              (data.antonyms ? `<strong>Antonyms:</strong> ${data.antonyms.join(", ")}` : '');
-          } else {
-            coach.innerHTML = `👋 Coach Alex says: No synonyms or antonyms found.`;
-          }
-        })
-        .catch(() => {
-          document.getElementById("coachFeedback").innerHTML =
-            `👋 Coach Alex says: Nice choice! Don't forget to use '${word}' in a sentence today!`;
-        });
-
-      // Actualiza el estado del botón de guardado
-      updateSaveButton();
-    }
-
-    // ====== GUARDAR PALABRA APRENDIDA ======
-    function saveLearnedWord() {
-      const word = document.getElementById("wordInput").value.trim().toLowerCase();
-      if (!word) return;
-      const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
-      if (learned.some(w => w.word === word)) {
-        alert("You have already saved this word.");
-        updateSaveButton();
-        return;
-      }
-      learned.push({ word, date: new Date().toISOString() });
-      localStorage.setItem("learnedWords", JSON.stringify(learned));
-      updateProgress();
-      updateSaveButton();
-      alert("Word saved!");
-    }
-
-    function updateSaveButton() {
-      const word = document.getElementById("wordInput").value.trim().toLowerCase();
-      const btn = document.getElementById("saveBtn");
-      const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
-      if (!word || learned.some(w => w.word === word)) {
-        btn.disabled = true;
-        btn.title = "Word already saved!";
+// Análisis de palabra completo (sinónimos, contexto, traducción, feedback, badges)
+function analyzeWord() {
+  const word = document.getElementById("wordInput").value.trim().toLowerCase();
+  if (!word) return;
+  document.getElementById("output").innerHTML = `<strong>Word:</strong> ${word}`;
+  // Sinónimos/antónimos Datamuse
+  fetch(`https://api.datamuse.com/words?rel_syn=${word}`).then(res => res.json())
+    .then(syns => {
+      fetch(`https://api.datamuse.com/words?rel_ant=${word}`).then(res => res.json())
+      .then(ants => {
+        document.getElementById("wordnikOutput").innerHTML =
+          `<strong>Datamuse Synonyms:</strong> ${syns.map(s=>s.word).join(', ') || 'None'}<br>
+           <strong>Datamuse Antonyms:</strong> ${ants.map(a=>a.word).join(', ') || 'None'}<div id="apiNinjasOutput"></div>`;
+      });
+    });
+  // API Ninjas
+  fetch(`https://api.api-ninjas.com/v1/thesaurus?word=${word}`, {headers: {'X-Api-Key': API_NINJAS_KEY}})
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(data => {
+      let html = '';
+      if ((data.synonyms && data.synonyms.length) || (data.antonyms && data.antonyms.length)) {
+        html += `<hr><strong>API Ninjas Synonyms:</strong> ${data.synonyms ? data.synonyms.join(", ") : "None"}<br>`;
+        html += `<strong>API Ninjas Antonyms:</strong> ${data.antonyms ? data.antonyms.join(", ") : "None"}`;
       } else {
-        btn.disabled = false;
-        btn.title = "";
+        html = `<hr>No synonyms or antonyms found in API Ninjas.`;
       }
-    }
-
-    // Detecta cambios para actualizar estado del botón de guardado
-    document.getElementById("wordInput").addEventListener("input", updateSaveButton);
-
-    // ====== PRÁCTICA DE CONTEXTO ======
-    function rewriteStory() {
-      const story = document.getElementById("story").value.trim();
-      const word = document.getElementById("wordInput").value.trim();
-      if (!story) return;
-      let rewritten = story;
-      if (word) {
-        // Reemplaza todas las apariciones de la palabra
-        const reg = new RegExp(word, "gi");
-        rewritten = rewritten.replace(reg, "...");
+      const ninjasDiv = document.getElementById("apiNinjasOutput");
+      if (ninjasDiv) {
+        ninjasDiv.innerHTML = html;
       }
-      document.getElementById("rewriteOutput").innerHTML =
-        `🧑‍🏫 Coach Alex: Here's a better version:<br><em>"${rewritten}"</em><br><small>(In future, this will be powered by AI.)</small>`;
-    }
-
-    // ====== GRABACIÓN DE AUDIO ======
-    function startRecording() {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.start();
-          audioChunks = [];
-
-          mediaRecorder.addEventListener("dataavailable", event => {
-            audioChunks.push(event.data);
-          });
-
-          mediaRecorder.addEventListener("stop", () => {
-            const audioBlob = new Blob(audioChunks);
-            const audioUrl = URL.createObjectURL(audioBlob);
-            addRecording(audioUrl);
-            saveProgress("recording", audioUrl);
-          });
-        })
-        .catch(() => {
-          alert("Microphone access denied or not available.");
-        });
-    }
-
-    function stopRecording() {
-      if (mediaRecorder) mediaRecorder.stop();
-    }
-
-    function addRecording(url) {
-      const recordingsDiv = document.getElementById("recordingsList");
-      const container = document.createElement("div");
-      container.className = "audio-item";
-      const audio = document.createElement("audio");
-      audio.controls = true;
-      audio.src = url;
-
-      // Botón para eliminar grabación
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "🗑️";
-      delBtn.title = "Delete this recording";
-      delBtn.onclick = () => {
-        recordingsDiv.removeChild(container);
-        removeRecording(url);
-      };
-
-      container.appendChild(audio);
-      container.appendChild(delBtn);
-      recordingsDiv.appendChild(container);
-    }
-
-    // Eliminar grabación del progreso
-    function removeRecording(url) {
-      let progress = JSON.parse(localStorage.getItem("progress") || "[]");
-      progress = progress.filter(p => !(p.type === "recording" && p.value === url));
-      localStorage.setItem("progress", JSON.stringify(progress));
-      updateProgress();
-    }
-
-    // Cargar grabaciones guardadas al iniciar
-    function loadRecordings() {
-      const progress = JSON.parse(localStorage.getItem("progress") || "[]");
-      const recordings = progress.filter(p => p.type === "recording");
-      document.getElementById("recordingsList").innerHTML = "";
-      recordings.forEach(r => addRecording(r.value));
-    }
-
-    // ====== RETO DIARIO Y TIP DEL DÍA ======
-    function randomDaily(seedArray, key, containerId) {
-      const today = new Date().toISOString().slice(0, 10);
-      const stored = JSON.parse(localStorage.getItem(key)) || {};
-      if (stored.date === today) {
-        document.getElementById(containerId).innerText = stored.value;
-      } else {
-        const pick = seedArray[Math.floor(Math.random() * seedArray.length)];
-        document.getElementById(containerId).innerText = pick;
-        localStorage.setItem(key, JSON.stringify({ date: today, value: pick }));
+    })
+    .catch(() => {
+      const ninjasDiv = document.getElementById("apiNinjasOutput");
+      if (ninjasDiv) {
+        ninjasDiv.innerHTML = `<hr>Could not fetch API Ninjas results.`;
       }
+    });
+  // Ejemplos automáticos (Datamuse rel_trg)
+  fetch(`https://api.datamuse.com/words?rel_trg=${word}&max=5`)
+    .then(res => res.json())
+    .then(data => {
+      let html = "<strong>Related words in context:</strong><ul>";
+      data.forEach(item => { html += `<li>${item.word}</li>`; });
+      html += "</ul>";
+      document.getElementById("examplesOutput").innerHTML = html;
+    });
+  // Traducción automática (LibreTranslate)
+  fetch('https://libretranslate.de/translate', {
+    method: "POST",
+    body: JSON.stringify({q: word, source: "en", target: "es", format: "text"}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res=>res.json())
+    .then(data=>{
+      document.getElementById("translationOutput").innerHTML = `<strong>Translation (ES):</strong> ${data.translatedText}`;
+    });
+  document.getElementById("coachFeedback").innerHTML =
+    `Coach Alex: Use '${word}' in a sentence! Try asking a question or creating a story with it. See tip below.`;
+  updateSaveButton();
+  showLearnedHistory();
+  personalizedChallenge();
+}
+
+// Guardar palabra y progreso visual
+function saveLearnedWord() {
+  const word = document.getElementById("wordInput").value.trim().toLowerCase();
+  if (!word) return;
+  const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+  if (learned.some(w => w.word === word)) return;
+  learned.push({ word, date: new Date().toISOString() });
+  localStorage.setItem("learnedWords", JSON.stringify(learned));
+  updateProgress();
+  updateSaveButton();
+  showLearnedHistory();
+  personalizedChallenge();
+}
+function updateSaveButton() {
+  const word = document.getElementById("wordInput").value.trim().toLowerCase();
+  const btn = document.getElementById("saveBtn");
+  const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+  btn.disabled = !word || learned.some(w => w.word === word);
+}
+function showLearnedHistory() {
+  const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+  let html = "<strong>Learned Words:</strong><br>";
+  html += learned.map(item => `<span class="badge">${item.word}</span>`).join('');
+  document.getElementById("historyOutput").innerHTML = html;
+}
+function updateProgress() {
+  const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+  const words = learned.length;
+  let bar = `<div class="progress-bar"><div class="progress-bar-inner" style="width:${Math.min(words*10,100)}%">${words}/10 words</div></div>`;
+  let badges = '';
+  if (words >= 10) badges += '<span class="badge">🎉 Word Master!</span>';
+  document.getElementById("progressSummary").innerHTML = bar + badges;
+}
+function exportProgress() {
+  const learned = localStorage.getItem("learnedWords");
+  const blob = new Blob([learned], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "learned_words.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Mini-quiz sinónimos
+function showSynonymQuiz(word) {
+  if (!word) return;
+  fetch(`https://api.api-ninjas.com/v1/thesaurus?word=${word}`, {headers: {'X-Api-Key': API_NINJAS_KEY}})
+  .then(res => res.json())
+  .then(data => {
+    if (data.synonyms && data.synonyms.length > 0) {
+      const correct = data.synonyms[0];
+      let distractors = data.synonyms.slice(1, 4);
+      while (distractors.length < 3) distractors.push('...');
+      const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
+      let html = `<strong>Which is a synonym of "${word}"?</strong><ul>`;
+      options.forEach(opt => {
+        html += `<li><button onclick="alert('${opt === correct ? 'Correct!' : 'Try again!'}')">${opt}</button></li>`;
+      });
+      html += "</ul>";
+      document.getElementById("quizOutput").innerHTML = html;
     }
+  });
+}
 
-    // ====== PROGRESO Y LOCALSTORAGE ======
-    function saveProgress(type, value) {
-      const progress = JSON.parse(localStorage.getItem("progress") || "[]");
-      progress.push({ type, value, date: new Date().toISOString() });
-      localStorage.setItem("progress", JSON.stringify(progress));
-      updateProgress();
-    }
+// Grammar check
+function grammarCheck(text) {
+  fetch('https://api.languagetoolplus.com/v2/check', {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `text=${encodeURIComponent(text)}&language=en-US`
+  })
+  .then(res => res.json())
+  .then(data => {
+    let html = "<strong>Grammar suggestions:</strong><ul>";
+    data.matches.forEach(match => {
+      html += `<li>${match.message} (${match.replacements.map(r => r.value).join(', ')})</li>`;
+    });
+    html += "</ul>";
+    document.getElementById("grammarFeedback").innerHTML = html;
+  });
+}
 
-    function updateProgress() {
-      const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
-      const progress = JSON.parse(localStorage.getItem("progress") || "[]");
-      const words = learned.length;
-      const recordings = progress.filter(p => p.type === "recording").length;
-      const days = [...new Set(learned.map(w => w.date.slice(0, 10)))].length;
+// Rewrite context
+function rewriteStory() {
+  const story = document.getElementById("story").value.trim();
+  const word = document.getElementById("wordInput").value.trim();
+  if (!story) return;
+  let rewritten = story;
+  if (word) {
+    const reg = new RegExp(word, "gi");
+    rewritten = rewritten.replace(reg, "...");
+  }
+  document.getElementById("rewriteOutput").innerHTML =
+    `Coach Alex: Here's a better version:<br><em>"${rewritten}"</em>`;
+}
 
-      document.getElementById("progressSummary").innerHTML =
-        `Words practiced: <strong>${words}</strong><br>` +
-        `Voice recordings: <strong>${recordings}</strong><br>` +
-        `Active days: <strong>${days}</strong>`;
+// Simulación de conversación básica
+function simulateConversation() {
+  const input = document.getElementById("conversationInput").value;
+  let response = "";
+  if (input.toLowerCase().includes("hello")) response = "Hi! How are you?";
+  else if (input.toLowerCase().includes("weather")) response = "It's sunny today!";
+  else if (input.toLowerCase().includes("name")) response = "My name is Coach Alex!";
+  else response = "Tell me more!";
+  document.getElementById("conversationOutput").innerHTML += `<div><b>You:</b> ${input}</div><div><b>Coach:</b> ${response}</div>`;
+  document.getElementById("conversationInput").value = "";
+}
 
-      loadRecordings();
-    }
+// Listening simulado
+const listeningClips = [
+  {text: "The quick brown fox jumps over the lazy dog."},
+  {text: "Practice makes perfect."},
+  {text: "Never give up on your dreams."}
+];
+let currentClip = null;
+function playListeningClip() {
+  currentClip = listeningClips[Math.floor(Math.random()*listeningClips.length)];
+  playPronunciation(currentClip.text);
+}
+function checkListening() {
+  const userInput = document.getElementById("listeningInput").value.trim();
+  if (!currentClip) return;
+  const correct = currentClip.text.toLowerCase();
+  document.getElementById("listeningFeedback").innerText =
+    userInput.toLowerCase() === correct ? "✔️ Correct!" : `❌ Try again. It was: "${currentClip.text}"`;
+}
 
-    // ====== INICIALIZACIÓN ======
-    window.onload = () => {
-      randomDaily(challenges, "dailyChallenge", "challenge");
-      randomDaily(tips, "dailyTip", "tip");
-      updateProgress();
-      updateSaveButton();
-    };
-  </script>
+// Desafío personalizado y tips de registro/cultura
+function personalizedChallenge() {
+  const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+  const lastWord = learned.length ? learned[learned.length - 1].word : '';
+  if (lastWord) {
+    document.getElementById("challenge").innerText = `Personal Challenge: Use "${lastWord}" in a question or story today.`;
+    if (lastWord === 'break') document.getElementById("tip").innerText = 'Tip: "Break the ice" means to start a conversation in a friendly way!';
+    else if (lastWord === 'run') document.getElementById("tip").innerText = 'Tip: "Run a business" is a common phrase for managing a company.';
+    else document.getElementById("tip").innerText = '';
+  }
+}
+
+// Repetición espaciada (repaso)
+window.onload = () => {
+  personalizedChallenge();
+  updateProgress();
+  updateSaveButton();
+  showLearnedHistory();
+  // Repetición espaciada ejemplo básico
+  const learned = JSON.parse(localStorage.getItem("learnedWords") || "[]");
+  const today = new Date().toISOString().slice(0,10);
+  let toReview = learned.filter(w => w.date.slice(0,10) < today && Math.random() < 0.2);
+  if (toReview.length) {
+    document.getElementById("tip").innerText += `\nReview: ${toReview.map(w=>w.word).join(', ')}`;
+  }
+};
+</script>
 </body>
 </html>
